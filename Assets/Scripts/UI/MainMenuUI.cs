@@ -58,8 +58,9 @@ namespace GhostCatcher
                 NetworkManager.Instance.Event_CreateRoomFailed   += HandleCreateFailed;
             }
 
-            // If already connected (scene reload), show menu directly
-            if (PhotonNetwork.IsConnected)
+            // Only skip connecting screen on scene reload
+            // (e.g., returning from Lobby — Photon is already fully connected)
+            if (PhotonNetwork.IsConnected && PhotonNetwork.InLobby)
                 HandleConnected();
         }
 
