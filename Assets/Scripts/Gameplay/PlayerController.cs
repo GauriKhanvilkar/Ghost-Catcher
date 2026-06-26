@@ -6,7 +6,8 @@ namespace GhostCatcher
 {
     /// <summary>
     /// Handles player movement and interaction input.
-    /// Works with both keyboard (WASD) and on-screen joystick via Unity Input System.
+    /// Keyboard: WASD / Arrow keys (direct Input.GetAxisRaw)
+    /// Mobile:   Joystick calls SetMoveInput() directly.
     /// Attach to the Player prefab alongside PhotonView.
     /// </summary>
     [RequireComponent(typeof(Rigidbody2D))]
@@ -30,6 +31,7 @@ namespace GhostCatcher
 
         // Input
         private Vector2 moveInput;
+        private Vector2 joystickInput;   // set by MobileJoystick.cs
         private bool    isMovementLocked; // true while blended
 
         // Nearby interactables
@@ -81,6 +83,26 @@ namespace GhostCatcher
         {
             if (!photonView.IsMine) return;
 
+            // ── Keyboard input (new Input System) ─────────────────────────
+            var kb = Keyboard.current;
+            if (kb == null) return;
+
+            float h = 0f, v = 0f;
+            if (kb.dKey.isPressed  || kb.rightArrowKey.isPressed) h += 1f;
+            if (kb.aKey.isPressed  || kb.leftArrowKey.isPressed)  h -= 1f;
+            if (kb.wKey.isPressed  || kb.upArrowKey.isPressed)    v += 1f;
+            if (kb.sKey.isPressed  || kb.downArrowKey.isPressed)  v -= 1f;
+
+            Vector2 keyboardInput = new Vector2(h, v).normalized;
+
+            // Combine keyboard + joystick (whichever is non-zero wins)
+            moveInput = keyboardInput.sqrMagnitude > 0.01f ? keyboardInput : joystickInput;
+
+            // ── Action keys ─────────────────────────────────────────────────
+            if (kb.eKey.wasPressedThisFrame) TryInteract();
+            if (kb.fKey.wasPressedThisFrame) TryScan();
+            if (kb.bKey.wasPressedThisFrame) TryBlend();
+
             HandleInteractInput();
             UpdatePrompts();
         }
@@ -108,31 +130,18 @@ namespace GhostCatcher
                 rb.linearVelocity = Vector2.zero;
         }
 
-        // ─── Input System Callbacks ──────────────────────────────────────────
-        // These are called by Unity's Player Input component
+        // ─── Mobile Button Callbacks ─────────────────────────────────────────
+        /// <summary>Called by on-screen Interact button (UI Button OnClick).</summary>
+        public void OnInteractButton() => TryInteract();
 
-        public void OnMove(InputValue value)
-        {
-            moveInput = value.Get<Vector2>();
-        }
+        /// <summary>Called by on-screen Scan button (UI Button OnClick).</summary>
+        public void OnScanButton() => TryScan();
 
-        public void OnInteract(InputValue value)
-        {
-            if (!value.isPressed) return;
-            TryInteract();
-        }
+        /// <summary>Called by on-screen Blend button (UI Button OnClick).</summary>
+        public void OnBlendButton() => TryBlend();
 
-        public void OnScan(InputValue value)
-        {
-            if (!value.isPressed) return;
-            TryScan();
-        }
-
-        public void OnBlend(InputValue value)
-        {
-            if (!value.isPressed) return;
-            TryBlend();
-        }
+        /// <summary>Called every frame by MobileJoystick with the stick direction.</summary>
+        public void SetMoveInput(Vector2 input) => joystickInput = input;
 
         // ─── Interaction Logic ───────────────────────────────────────────────
 

@@ -33,9 +33,23 @@ namespace GhostCatcher
 
         private void Start()
         {
-            // Host assigns roles as soon as game scene loads
+            // Guard: must be in a room and have a PhotonView
+            if (!PhotonNetwork.IsConnected || !PhotonNetwork.InRoom)
+            {
+                Debug.LogWarning("[RoleManager] Not in a Photon room — skipping role assignment.");
+                return;
+            }
+
+            if (photonView == null)
+            {
+                Debug.LogError("[RoleManager] Missing PhotonView component! " +
+                               "Add a PhotonView to the RoleManager GameObject.");
+                return;
+            }
+
+            // Small delay so all clients finish loading before RPCs are sent
             if (PhotonNetwork.IsMasterClient)
-                AssignRoles();
+                Invoke(nameof(AssignRoles), 0.5f);
         }
 
         // ─── Role Assignment (Host Only) ─────────────────────────────────────

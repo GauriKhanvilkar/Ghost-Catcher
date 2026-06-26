@@ -14,7 +14,7 @@ namespace GhostCatcher
     {
         [Header("Timer")]
         [SerializeField] private TMP_Text timerText;
-        [SerializeField] private Image    timerFill;
+        [SerializeField] private Slider   timerFill;
 
         [Header("Sabotage Counter")]
         [SerializeField] private TMP_Text sabotageText;
@@ -28,18 +28,23 @@ namespace GhostCatcher
 
         [Header("Scan Cooldown (Hunter only)")]
         [SerializeField] private GameObject scanCooldownGroup;
-        [SerializeField] private Image      scanCooldownFill;
+        [SerializeField] private Slider     scanCooldownFill;
         [SerializeField] private TMP_Text   scanCooldownText;
 
         [Header("Blend Cooldown (Ghost only)")]
         [SerializeField] private GameObject blendCooldownGroup;
-        [SerializeField] private Image      blendCooldownFill;
+        [SerializeField] private Slider     blendCooldownFill;
         [SerializeField] private TMP_Text   blendCooldownText;
-        [SerializeField] private Image      blendDurationFill;
+        [SerializeField] private Slider     blendDurationFill;
 
         [Header("Sabotage Alert")]
         [SerializeField] private GameObject sabotageAlertPanel;
         [SerializeField] private TMP_Text   sabotageAlertText;
+
+        [Header("Mobile Buttons")]
+        [SerializeField] private GameObject interactButton;   // always visible
+        [SerializeField] private GameObject scanButton;       // Hunter only
+        [SerializeField] private GameObject blendButton;      // Ghost only
 
         private float gameDuration;
         private ScanAbility  scanAbility;
@@ -85,12 +90,17 @@ namespace GhostCatcher
             bool isGhost = role == Constants.ROLE_GHOST;
 
             // Role badge
-            roleText.text  = isGhost ? "👻 GHOST" : "🔵 HUNTER";
+            roleText.text   = isGhost ? "👻 GHOST" : "🔵 HUNTER";
             roleBadge.color = isGhost ? ghostColor : hunterColor;
 
             // Show relevant cooldown groups
             scanCooldownGroup?.SetActive(!isGhost);
             blendCooldownGroup?.SetActive(isGhost);
+
+            // Show relevant mobile buttons
+            scanButton?.SetActive(!isGhost);   // Hunters get Scan
+            blendButton?.SetActive(isGhost);   // Ghost gets Blend
+            interactButton?.SetActive(true);   // Everyone gets Interact
 
             // Find ability components on local player
             foreach (var pv in PhotonNetwork.PhotonViews)
@@ -114,7 +124,7 @@ namespace GhostCatcher
             timerText.text = $"{minutes}:{seconds:00}";
 
             if (timerFill != null)
-                timerFill.fillAmount = remaining / gameDuration;
+                timerFill.value = remaining / gameDuration;
 
             // Red timer when under 30 seconds
             if (timerText != null)
@@ -162,7 +172,7 @@ namespace GhostCatcher
             if (scanAbility != null && scanCooldownFill != null)
             {
                 float t = 1f - Mathf.Clamp01(scanAbility.CooldownRemaining / Constants.SCAN_COOLDOWN);
-                scanCooldownFill.fillAmount = t;
+                scanCooldownFill.value = t;
                 if (scanCooldownText != null)
                     scanCooldownText.text = scanAbility.CooldownRemaining > 0f
                         ? $"{scanAbility.CooldownRemaining:F1}s"
@@ -173,7 +183,7 @@ namespace GhostCatcher
             if (blendAbility != null && blendCooldownFill != null)
             {
                 float t = 1f - Mathf.Clamp01(blendAbility.CooldownRemaining / Constants.BLEND_COOLDOWN);
-                blendCooldownFill.fillAmount = t;
+                blendCooldownFill.value = t;
                 if (blendCooldownText != null)
                     blendCooldownText.text = blendAbility.CooldownRemaining > 0f
                         ? $"{blendAbility.CooldownRemaining:F1}s"
@@ -183,7 +193,7 @@ namespace GhostCatcher
                 if (blendDurationFill != null)
                 {
                     float d = 1f - Mathf.Clamp01(blendAbility.DurationRemaining / Constants.BLEND_DURATION);
-                    blendDurationFill.fillAmount = blendAbility.IsBlended ? d : 0f;
+                    blendDurationFill.value = blendAbility.IsBlended ? d : 0f;
                 }
             }
         }

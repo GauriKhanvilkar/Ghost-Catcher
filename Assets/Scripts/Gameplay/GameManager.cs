@@ -22,6 +22,9 @@ namespace GhostCatcher
         [Header("Settings")]
         [SerializeField] private float gameDuration = Constants.GAME_DURATION;
 
+        [Header("Spawn Points")]
+        [SerializeField] private Transform[] spawnPoints; // assign in Inspector
+
         // State
         public float   TimeRemaining   { get; private set; }
         public int     SabotageCount   { get; private set; }
@@ -52,11 +55,60 @@ namespace GhostCatcher
             SabotageCount = 0;
             GameActive    = false;
 
+            // Spawn local player first
+            SpawnLocalPlayer();
+
             // Wait for role assignment before starting timer
             if (RoleManager.Instance != null)
                 RoleManager.Instance.OnRoleAssigned += _ => StartGame();
             else
                 StartGame(); // fallback
+        }
+
+        // ─── Player Spawn ─────────────────────────────────────────────────────
+
+        private void SpawnLocalPlayer()
+        {
+            // Guard: can only instantiate if inside a Photon room
+            if (!PhotonNetwork.IsConnected || !PhotonNetwork.InRoom)
+            {
+                Debug.LogWarning("[GameManager] Not in a Photon room — skipping player spawn. " +
+                                 "Start from the MainMenu scene to play online.");
+                return;
+            }
+
+            // Pick a random spawn point
+            Vector3 spawnPos = Vector3.zero;
+            if (spawnPoints != null && spawnPoints.Length > 0)
+            {
+                int index = Random.Range(0, spawnPoints.Length);
+                spawnPos = spawnPoints[index].position;
+            }
+
+            // Photon loads "Player" from Assets/Resources/Player.prefab
+            GameObject player = PhotonNetwork.Instantiate(
+                "Player",
+                spawnPos,
+                Quaternion.identity);
+
+            // Guard: make sure prefab was found and instantiated
+            if (player == null)
+            {
+                Debug.LogError("[GameManager] Player prefab failed to spawn! " +
+                               "Make sure 'Player.prefab' exists inside Assets/Resources/");
+                return;
+            }
+
+            // Tell camera to follow this player
+            var cam = Camera.main;
+            if (cam != null)
+            {
+                var follow = cam.GetComponent<CameraFollow>();
+                if (follow != null)
+                    follow.SetTarget(player.transform);
+            }
+
+            Debug.Log($"[GameManager] Spawned local player at {spawnPos}");
         }
 
         private void Update()

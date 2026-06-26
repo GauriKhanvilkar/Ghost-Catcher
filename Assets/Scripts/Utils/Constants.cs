@@ -33,7 +33,7 @@ namespace GhostCatcher
         // Game Settings
         public const float GAME_DURATION         = 180f; // 3 minutes
         public const int   SABOTAGES_TO_WIN      = 3;
-        public const int   MIN_PLAYERS_TO_START  = 2;    // lower for testing, set to 3 for production
+        public const int   MIN_PLAYERS_TO_START  = 1;    // set to 2+ for production
         public const float SCAN_COOLDOWN         = 10f;
         public const float BLEND_DURATION        = 5f;
         public const float BLEND_COOLDOWN        = 15f;
