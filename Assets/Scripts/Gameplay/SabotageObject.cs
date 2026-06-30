@@ -109,20 +109,23 @@ namespace GhostCatcher
             switch (State)
             {
                 case ObjectState.Normal:
-                    spriteRenderer.sprite = normalSprite;
-                    spriteRenderer.color  = Color.white;
-                    redGlowObject?.SetActive(false);
-                    sparkParticles?.Stop();
-                    shakeAnimator?.SetBool("Shaking", false);
+                    if (spriteRenderer != null) spriteRenderer.sprite = normalSprite;
+                    if (spriteRenderer != null) spriteRenderer.color  = Color.white;
+                    if (redGlowObject  != null) redGlowObject.SetActive(false);
+                    if (sparkParticles != null) sparkParticles.Stop();
+                    if (shakeAnimator  != null) shakeAnimator.SetBool("Shaking", false);
                     StartCoroutine(GreenFlash());
                     break;
 
                 case ObjectState.Sabotaged:
-                    spriteRenderer.sprite = sabotagedSprite != null ? sabotagedSprite : normalSprite;
-                    spriteRenderer.color  = new Color(1f, 0.3f, 0.3f);
-                    redGlowObject?.SetActive(true);
-                    sparkParticles?.Play();
-                    shakeAnimator?.SetBool("Shaking", true);
+                    if (spriteRenderer != null)
+                    {
+                        spriteRenderer.sprite = sabotagedSprite != null ? sabotagedSprite : normalSprite;
+                        spriteRenderer.color  = new Color(1f, 0.3f, 0.3f);
+                    }
+                    if (redGlowObject  != null) redGlowObject.SetActive(true);
+                    if (sparkParticles != null) sparkParticles.Play();
+                    if (shakeAnimator  != null) shakeAnimator.SetBool("Shaking", true);
                     break;
             }
         }
