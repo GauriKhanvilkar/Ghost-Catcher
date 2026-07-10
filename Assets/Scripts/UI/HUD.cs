@@ -106,12 +106,18 @@ namespace GhostCatcher
             foreach (var pv in PhotonNetwork.PhotonViews)
             {
                 if (!pv.IsMine) continue;
+                
+                // Make sure this is actually the Player, not the GameManager/RoleManager
+                var playerController = pv.GetComponent<PlayerController>();
+                if (playerController == null) continue;
+
                 scanAbility  = pv.GetComponent<ScanAbility>();
                 blendAbility = pv.GetComponent<BlendAbility>();
 
                 if (blendAbility != null)
                     blendAbility.OnBlendStateChanged += OnBlendStateChanged;
-                break;
+                    
+                break; // Found the player, we can stop searching
             }
         }
 
@@ -171,8 +177,11 @@ namespace GhostCatcher
             // Scan cooldown
             if (scanAbility != null && scanCooldownFill != null)
             {
-                float t = 1f - Mathf.Clamp01(scanAbility.CooldownRemaining / Constants.SCAN_COOLDOWN);
+                float t = scanAbility.CooldownRemaining > 0f 
+                    ? 1f - Mathf.Clamp01(scanAbility.CooldownRemaining / Constants.SCAN_COOLDOWN) 
+                    : 0f;
                 scanCooldownFill.value = t;
+                
                 if (scanCooldownText != null)
                     scanCooldownText.text = scanAbility.CooldownRemaining > 0f
                         ? $"{scanAbility.CooldownRemaining:F1}s"
@@ -182,8 +191,11 @@ namespace GhostCatcher
             // Blend cooldown
             if (blendAbility != null && blendCooldownFill != null)
             {
-                float t = 1f - Mathf.Clamp01(blendAbility.CooldownRemaining / Constants.BLEND_COOLDOWN);
+                float t = blendAbility.CooldownRemaining > 0f 
+                    ? 1f - Mathf.Clamp01(blendAbility.CooldownRemaining / Constants.BLEND_COOLDOWN) 
+                    : 0f;
                 blendCooldownFill.value = t;
+                
                 if (blendCooldownText != null)
                     blendCooldownText.text = blendAbility.CooldownRemaining > 0f
                         ? $"{blendAbility.CooldownRemaining:F1}s"
@@ -200,13 +212,8 @@ namespace GhostCatcher
 
         private void OnBlendStateChanged(bool isBlended)
         {
-            // Flash the blend button/icon when state changes
-            if (blendCooldownGroup != null)
-            {
-                var img = blendCooldownGroup.GetComponent<Image>();
-                if (img != null)
-                    img.color = isBlended ? new Color(0.2f, 0.8f, 1f) : Color.white;
-            }
+            // Intentionally left blank: user requested to keep original background color.
+            // You can add other UI effects here later if needed.
         }
     }
 }

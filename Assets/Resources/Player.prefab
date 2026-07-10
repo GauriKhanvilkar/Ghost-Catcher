@@ -779,7 +779,7 @@ MonoBehaviour:
   bodyRenderer: {fileID: 6446539492619746925}
   outlineRenderer: {fileID: 6373576904302328903}
   nameTagText: {fileID: 1778324785956195818}
-  nameTagObject: {fileID: 6188947897430580938}
+  nameTagObject: {fileID: 4165780379051783627}
   defaultSprite: {fileID: 21300000, guid: 772d7698863ab417c949b858e9a0bbfe, type: 3}
 --- !u!114 &5905688729682943039
 MonoBehaviour:

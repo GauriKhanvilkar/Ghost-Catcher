@@ -90,7 +90,7 @@ namespace GhostCatcher
             {
                 // Switch to prop sprite
                 Sprite propSprite = PropSpriteRegistry.GetSprite(spriteIndex);
-                if (propSprite != null)
+                if (propSprite != null && bodyRenderer != null)
                     bodyRenderer.sprite = propSprite;
 
                 // Hide name tag while blended
@@ -100,15 +100,19 @@ namespace GhostCatcher
             else
             {
                 // Restore original sprite
-                bodyRenderer.sprite = defaultSprite;
-                bodyRenderer.color  = originalColor;
+                if (bodyRenderer != null)
+                {
+                    bodyRenderer.sprite = defaultSprite;
+                    bodyRenderer.color  = originalColor;
+                }
 
                 // Restore name tag
                 if (nameTagObject != null)
                     nameTagObject.SetActive(true);
 
-                // Play shimmer effect
-                StartCoroutine(ShimmerEffect());
+                // Play shimmer effect only if GameObject is active
+                if (gameObject.activeInHierarchy)
+                    StartCoroutine(ShimmerEffect());
             }
         }
 

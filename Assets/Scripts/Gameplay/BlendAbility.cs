@@ -21,13 +21,15 @@ namespace GhostCatcher
         public System.Action<float> OnDurationUpdated;    // 0–1 normalized
 
         private PlayerNetwork playerNetwork;
-        private bool          onCooldown;
-        private Coroutine     blendTimer;
-        private Coroutine     cooldownTimer;
+        private PhotonView     playerNetworkView; // use PlayerNetwork's photonView for RPCs
+        private bool           onCooldown;
+        private Coroutine      blendTimer;
+        private Coroutine      cooldownTimer;
 
         private void Awake()
         {
-            playerNetwork = GetComponent<PlayerNetwork>();
+            playerNetwork     = GetComponent<PlayerNetwork>();
+            playerNetworkView = GetComponent<PhotonView>(); // same GO, same PV
         }
 
         private void Update()
@@ -77,12 +79,19 @@ namespace GhostCatcher
 
         private void ActivateBlend(int spriteIndex)
         {
+            if (!gameObject.activeInHierarchy)
+            {
+                Debug.LogWarning("[BlendAbility] Cannot blend — GameObject is inactive!");
+                return;
+            }
+
             IsBlended = true;
             OnBlendStateChanged?.Invoke(true);
 
-            // Sync sprite to all clients
-            photonView.RPC(nameof(PlayerNetwork.RPC_SetBlendSprite),
-                           RpcTarget.All, true, spriteIndex);
+            // Sync sprite to all clients via PlayerNetwork's PhotonView
+            if (playerNetworkView != null)
+                playerNetworkView.RPC(nameof(PlayerNetwork.RPC_SetBlendSprite),
+                                     RpcTarget.All, true, spriteIndex);
 
             // Start duration countdown
             if (blendTimer != null) StopCoroutine(blendTimer);
@@ -98,9 +107,10 @@ namespace GhostCatcher
             IsBlended = false;
             OnBlendStateChanged?.Invoke(false);
 
-            // Sync restore to all clients (spriteIndex -1 = restore)
-            photonView.RPC(nameof(PlayerNetwork.RPC_SetBlendSprite),
-                           RpcTarget.All, false, -1);
+            // Sync restore to all clients via PlayerNetwork's PhotonView
+            if (playerNetworkView != null)
+                playerNetworkView.RPC(nameof(PlayerNetwork.RPC_SetBlendSprite),
+                                     RpcTarget.All, false, -1);
 
             // Start cooldown
             if (blendTimer != null)
@@ -108,8 +118,12 @@ namespace GhostCatcher
                 StopCoroutine(blendTimer);
                 blendTimer = null;
             }
-            if (cooldownTimer != null) StopCoroutine(cooldownTimer);
-            cooldownTimer = StartCoroutine(CooldownTimer());
+
+            if (gameObject.activeInHierarchy)
+            {
+                if (cooldownTimer != null) StopCoroutine(cooldownTimer);
+                cooldownTimer = StartCoroutine(CooldownTimer());
+            }
 
             Debug.Log("[BlendAbility] Unblended.");
         }
