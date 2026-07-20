@@ -114,6 +114,17 @@ namespace GhostCatcher
                 case Constants.ROLE_GHOST:
                     displayText  = "👻 GHOST!";
                     displayColor = new Color(1f, 0.2f, 0.2f);
+
+                    // Trigger Game Over — Ghost was caught!
+                    if (PhotonNetwork.IsMasterClient)
+                    {
+                        GameManager.Instance?.GhostCaught();
+                    }
+                    else
+                    {
+                        // Tell Master Client to end the game
+                        photonView.RPC(nameof(RPC_NotifyGhostCaught), RpcTarget.MasterClient);
+                    }
                     break;
                 case Constants.ROLE_HUNTER:
                     displayText  = "🔵 HUNTER";
@@ -126,6 +137,13 @@ namespace GhostCatcher
             }
 
             StartCoroutine(ShowPopup(displayText, displayColor));
+        }
+
+        /// <summary>Non-host hunter tells host to end the game after catching Ghost.</summary>
+        [PunRPC]
+        private void RPC_NotifyGhostCaught()
+        {
+            GameManager.Instance?.GhostCaught();
         }
 
         // ─── Popup ───────────────────────────────────────────────────────────
