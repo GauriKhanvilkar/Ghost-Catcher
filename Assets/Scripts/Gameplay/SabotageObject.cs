@@ -86,7 +86,22 @@ namespace GhostCatcher
         private void DoSabotage()
         {
             photonView.RPC(nameof(RPC_SetState), RpcTarget.All, (int)ObjectState.Sabotaged);
-            // Tell GameManager to register this sabotage
+            
+            // Only Master Client tracks the global score. If we are not the host, tell the host!
+            if (PhotonNetwork.IsMasterClient)
+            {
+                GameManager.Instance?.RegisterSabotage();
+            }
+            else
+            {
+                photonView.RPC(nameof(RPC_NotifyMasterSabotage), RpcTarget.MasterClient);
+            }
+        }
+
+        [PunRPC]
+        private void RPC_NotifyMasterSabotage()
+        {
+            // The Master Client receives this and updates the score for everyone
             GameManager.Instance?.RegisterSabotage();
         }
 

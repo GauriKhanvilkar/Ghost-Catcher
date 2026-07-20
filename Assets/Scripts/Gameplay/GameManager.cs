@@ -114,13 +114,17 @@ namespace GhostCatcher
         private void Update()
         {
             if (!GameActive) return;
-            if (!PhotonNetwork.IsMasterClient) return; // Only host runs timer
 
+            // All clients tick down the timer visually
             TimeRemaining -= Time.deltaTime;
             OnTimerUpdated?.Invoke(TimeRemaining);
 
-            if (TimeRemaining <= 0f)
-                TriggerGameOver(Constants.ROLE_HUNTER); // Timer ran out → Hunters win
+            // Only host handles the actual Game Over condition
+            if (PhotonNetwork.IsMasterClient)
+            {
+                if (TimeRemaining <= 0f)
+                    TriggerGameOver(Constants.ROLE_HUNTER); // Timer ran out → Hunters win
+            }
         }
 
         // ─── Game Flow ───────────────────────────────────────────────────────

@@ -1,0 +1,10 @@
+# ninja log v5
+1	1059	1784122495110657152	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	c1bf114490c69af1
+2	1129	1784122495188178720	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	4225c3c4aa7ff2d7
+0	1142	1784122495202410151	GameActivity/CMakeFiles/game.dir/UGAConfiguration.cpp.o	d03b7aae1dc4577
+1	1148	1784122495208121448	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	ea3acd0feb9accb
+0	1223	1784122495283081925	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	d2a71fdd918fcd54
+3	1232	1784122495292422590	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	e52bce8dcd885c5c
+1	1409	1784122495469470841	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	d5f743bd260adcf3
+0	1448	1784122495508922470	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	ba2e164efb051260
+1448	1594	1784122495649926047	/Users/gau/Documents/RedlineGames/Project Ideas/Multiplayer/Ghost Catcher/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/301k3o2n/obj/arm64-v8a/libgame.so	2420aee11e7e26de
