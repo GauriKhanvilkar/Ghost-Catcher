@@ -46,6 +46,8 @@ MonoBehaviour:
   - RPC_SetBlendSprite
   - RPC_SetState
   - RPC_NotifyMasterSabotage
+  - RPC_NotifyGhostCaught
+  - RPC_CheckBlendAtPosition
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 0

@@ -1,15 +1,15 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Photon.Pun;
 
 namespace GhostCatcher
 {
     /// <summary>
-    /// Attach to any on-screen action button.
-    /// Finds the local PlayerController at runtime and calls the correct method.
-    /// No need to drag PlayerController into Inspector — it is spawned at runtime.
+    /// On-screen action button. Interact is hold-to-use; Scan/Blend are tap.
+    /// Finds the local PlayerController at runtime.
     /// </summary>
-    public class MobileButton : MonoBehaviour
+    public class MobileButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerExitHandler
     {
         public enum ButtonType { Interact, Scan, Blend }
 
@@ -21,31 +21,51 @@ namespace GhostCatcher
         private void Start()
         {
             button = GetComponent<Button>();
-            if (button != null)
+            if (button != null && buttonType != ButtonType.Interact)
                 button.onClick.AddListener(OnButtonClicked);
         }
 
         private void Update()
         {
-            // Keep trying to find the local player until found
             if (targetPlayer == null)
                 FindLocalPlayer();
         }
 
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            if (buttonType != ButtonType.Interact) return;
+            EnsurePlayer();
+            targetPlayer?.SetInteractHeld(true);
+        }
+
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            if (buttonType != ButtonType.Interact) return;
+            targetPlayer?.SetInteractHeld(false);
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            if (buttonType != ButtonType.Interact) return;
+            targetPlayer?.SetInteractHeld(false);
+        }
+
         private void OnButtonClicked()
         {
-            if (targetPlayer == null)
-            {
-                FindLocalPlayer();
-                if (targetPlayer == null) return;
-            }
+            EnsurePlayer();
+            if (targetPlayer == null) return;
 
             switch (buttonType)
             {
-                case ButtonType.Interact: targetPlayer.OnInteractButton(); break;
-                case ButtonType.Scan:     targetPlayer.OnScanButton();     break;
-                case ButtonType.Blend:    targetPlayer.OnBlendButton();    break;
+                case ButtonType.Scan:  targetPlayer.OnScanButton();  break;
+                case ButtonType.Blend: targetPlayer.OnBlendButton(); break;
             }
+        }
+
+        private void EnsurePlayer()
+        {
+            if (targetPlayer == null)
+                FindLocalPlayer();
         }
 
         private void FindLocalPlayer()

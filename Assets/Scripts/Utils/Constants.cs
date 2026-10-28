@@ -39,6 +39,7 @@ namespace GhostCatcher
         public const float BLEND_COOLDOWN        = 15f;
         public const float BLEND_RANGE           = 2f;   // tiles
         public const float INTERACT_RANGE        = 1.2f;
+        public const float SCAN_RANGE            = 1.25f;
         public const float SABOTAGE_HOLD_TIME    = 1f;
         public const float REPAIR_HOLD_TIME      = 2f;
     }

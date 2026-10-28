@@ -35,6 +35,7 @@ namespace GhostCatcher
         // Hold-to-interact
         private Coroutine activeInteraction;
         private float     holdProgress;
+        public float HoldProgress => holdProgress;
 
         // ─── Public Interface ────────────────────────────────────────────────
 
@@ -73,7 +74,6 @@ namespace GhostCatcher
             while (holdProgress < 1f)
             {
                 holdProgress += Time.deltaTime / duration;
-                // TODO: Drive progress bar UI from holdProgress
                 yield return null;
             }
             holdProgress      = 0f;
@@ -141,6 +141,7 @@ namespace GhostCatcher
                     if (redGlowObject  != null) redGlowObject.SetActive(true);
                     if (sparkParticles != null) sparkParticles.Play();
                     if (shakeAnimator  != null) shakeAnimator.SetBool("Shaking", true);
+                    AudioManager.Instance?.PlaySabotageAlarm();
                     break;
             }
         }

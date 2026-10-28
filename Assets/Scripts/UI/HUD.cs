@@ -49,6 +49,7 @@ namespace GhostCatcher
         private float gameDuration;
         private ScanAbility  scanAbility;
         private BlendAbility blendAbility;
+        private int lastTimerSecond = -1;
 
         private void Start()
         {
@@ -135,6 +136,13 @@ namespace GhostCatcher
             // Red timer when under 30 seconds
             if (timerText != null)
                 timerText.color = remaining < 30f ? Color.red : Color.white;
+
+            int second = Mathf.CeilToInt(remaining);
+            if (remaining < 30f && remaining > 0f && second != lastTimerSecond)
+            {
+                lastTimerSecond = second;
+                AudioManager.Instance?.PlayTimerTick();
+            }
         }
 
         // ─── Sabotage Count ──────────────────────────────────────────────────

@@ -97,6 +97,7 @@ namespace GhostCatcher
             if (blendTimer != null) StopCoroutine(blendTimer);
             blendTimer = StartCoroutine(BlendDurationTimer());
 
+            AudioManager.Instance?.PlayBlendWhoosh();
             Debug.Log($"[BlendAbility] Blended as sprite index {spriteIndex}");
         }
 
@@ -125,6 +126,7 @@ namespace GhostCatcher
                 cooldownTimer = StartCoroutine(CooldownTimer());
             }
 
+            AudioManager.Instance?.PlayBlendWhoosh();
             Debug.Log("[BlendAbility] Unblended.");
         }
 

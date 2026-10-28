@@ -16,25 +16,27 @@ namespace GhostCatcher
         [Header("Visuals")]
         [SerializeField] private SpriteRenderer bodyRenderer;
         [SerializeField] private SpriteRenderer outlineRenderer; // Ghost-only blue outline
+        public SpriteRenderer OutlineRenderer => outlineRenderer;
         [SerializeField] private TMP_Text       nameTagText;
         [SerializeField] private GameObject     nameTagObject;
 
         [Header("Sprites")]
         [SerializeField] private Sprite defaultSprite;
 
-        // Blend state — synced over network
-        private bool   isBlended;
-        private Sprite blendedSprite;
+        // Blend state — synced over network (set on ALL clients via RPC)
+        public bool IsBlended { get; private set; }
         private Color  originalColor;
+        private Vector3 bodyBaseScale = Vector3.one;
 
         // Smoothed network position
         private Vector3 networkPosition;
-        private float   networkLag;
 
         private void Awake()
         {
             originalColor = bodyRenderer.color;
             networkPosition = transform.position;
+            if (bodyRenderer != null)
+                bodyBaseScale = bodyRenderer.transform.localScale;
         }
 
         private void Start()
@@ -84,36 +86,51 @@ namespace GhostCatcher
         [PunRPC]
         public void RPC_SetBlendSprite(bool blended, int spriteIndex)
         {
-            isBlended = blended;
+            IsBlended = blended;
 
             if (blended)
             {
-                // Switch to prop sprite
                 Sprite propSprite = PropSpriteRegistry.GetSprite(spriteIndex);
                 if (propSprite != null && bodyRenderer != null)
+                {
                     bodyRenderer.sprite = propSprite;
+                    FitBodyScaleToSprite(propSprite);
+                }
 
-                // Hide name tag while blended
                 if (nameTagObject != null)
                     nameTagObject.SetActive(false);
             }
             else
             {
-                // Restore original sprite
                 if (bodyRenderer != null)
                 {
                     bodyRenderer.sprite = defaultSprite;
                     bodyRenderer.color  = originalColor;
+                    bodyRenderer.transform.localScale = bodyBaseScale;
                 }
 
-                // Restore name tag
                 if (nameTagObject != null)
                     nameTagObject.SetActive(true);
 
-                // Play shimmer effect only if GameObject is active
                 if (gameObject.activeInHierarchy)
                     StartCoroutine(ShimmerEffect());
             }
+        }
+
+        /// <summary>
+        /// Blend sprites (Kenney tiles) are much smaller than the player art.
+        /// Scale the body so the disguise matches the player's on-screen size.
+        /// </summary>
+        private void FitBodyScaleToSprite(Sprite sprite)
+        {
+            if (bodyRenderer == null || defaultSprite == null || sprite == null) return;
+
+            float defaultSize = Mathf.Max(defaultSprite.bounds.size.x, defaultSprite.bounds.size.y);
+            float spriteSize  = Mathf.Max(sprite.bounds.size.x, sprite.bounds.size.y);
+            if (spriteSize < 0.0001f) return;
+
+            float factor = defaultSize / spriteSize;
+            bodyRenderer.transform.localScale = bodyBaseScale * factor;
         }
 
         private System.Collections.IEnumerator ShimmerEffect()
@@ -139,16 +156,16 @@ namespace GhostCatcher
             if (stream.IsWriting)
             {
                 stream.SendNext(transform.position);
-                stream.SendNext(transform.localScale); // Flip for facing direction
+                stream.SendNext(bodyRenderer != null && bodyRenderer.flipX);
             }
             else
             {
-                networkPosition      = (Vector3)stream.ReceiveNext();
-                transform.localScale = (Vector3)stream.ReceiveNext();
-
-                // Estimate lag
-                networkLag = Mathf.Abs((float)(PhotonNetwork.Time - info.SentServerTime));
-                networkPosition += (Vector3)((Vector2)transform.localScale.normalized * networkLag);
+                networkPosition = (Vector3)stream.ReceiveNext();
+                bool flipX      = (bool)stream.ReceiveNext();
+                if (bodyRenderer != null)
+                    bodyRenderer.flipX = flipX;
+                if (outlineRenderer != null)
+                    outlineRenderer.flipX = flipX;
             }
         }
     }
