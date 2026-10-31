@@ -11,8 +11,8 @@ namespace GhostCatcher
     /// </summary>
     public class CameraFollow : MonoBehaviour
     {
-        [SerializeField] private float smoothSpeed = 5f;
-        [SerializeField] private Vector3 offset    = new Vector3(0, 0, -10f);
+        [SerializeField] private float smoothTime = 0.08f;
+        [SerializeField] private Vector3 offset   = new Vector3(0, 0, -10f);
 
         [Header("Camera Bounds")]
         [Tooltip("Drag a BoxCollider2D that covers your map area. Leave empty for no bounds.")]
@@ -27,6 +27,7 @@ namespace GhostCatcher
 
         private Transform target;
         private Camera    cam;
+        private Vector3   followVelocity;
 
         private void Awake()
         {
@@ -39,13 +40,15 @@ namespace GhostCatcher
         {
             if (target == null) return;
 
-            // Smooth follow
             Vector3 desired = target.position + offset;
-            Vector3 smoothed = Vector3.Lerp(transform.position, desired, smoothSpeed * Time.deltaTime);
+            Vector3 smoothed = Vector3.SmoothDamp(
+                transform.position,
+                desired,
+                ref followVelocity,
+                Mathf.Max(0.01f, smoothTime));
 
-            // Clamp within bounds
             smoothed = ClampToBounds(smoothed);
-
+            smoothed.z = offset.z;
             transform.position = smoothed;
         }
 

@@ -14,7 +14,9 @@ namespace GhostCatcher
     public class PlayerController : MonoBehaviourPun
     {
         [Header("Movement")]
-        [SerializeField] private float moveSpeed = 4f;
+        [SerializeField] private float moveSpeed     = 4f;
+        [SerializeField] private float acceleration  = 28f;
+        [SerializeField] private float deceleration  = 36f;
 
         [Header("Visuals")]
         [SerializeField] private SpriteRenderer spriteRenderer;
@@ -52,8 +54,11 @@ namespace GhostCatcher
             playerNetwork = GetComponent<PlayerNetwork>();
             blendAbility  = GetComponent<BlendAbility>();
 
-            rb.gravityScale   = 0f;
-            rb.freezeRotation = true;
+            rb.gravityScale          = 0f;
+            rb.freezeRotation        = true;
+            rb.interpolation         = RigidbodyInterpolation2D.Interpolate;
+            rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+            rb.linearDamping         = 0f;
 
             if (spriteRenderer != null)
             {
@@ -70,9 +75,12 @@ namespace GhostCatcher
 
             if (!photonView.IsMine)
             {
+                rb.bodyType = RigidbodyType2D.Kinematic;
                 enabled = false;
                 return;
             }
+
+            rb.bodyType = RigidbodyType2D.Dynamic;
 
             if (blendAbility != null)
                 blendAbility.OnBlendStateChanged += OnBlendStateChanged;
@@ -149,10 +157,15 @@ namespace GhostCatcher
         {
             if (!photonView.IsMine) return;
 
-            if (!isMovementLocked)
-                rb.linearVelocity = moveInput * moveSpeed;
-            else
-                rb.linearVelocity = Vector2.zero;
+            Vector2 targetVelocity = (!isMovementLocked && moveInput.sqrMagnitude > 0.01f)
+                ? moveInput * moveSpeed
+                : Vector2.zero;
+
+            float rate = targetVelocity.sqrMagnitude > 0.01f ? acceleration : deceleration;
+            rb.linearVelocity = Vector2.MoveTowards(
+                rb.linearVelocity,
+                targetVelocity,
+                rate * Time.fixedDeltaTime);
         }
 
         public void OnInteractButton() => mobileInteractHeld = true;

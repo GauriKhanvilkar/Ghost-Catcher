@@ -10467,7 +10467,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6917f4d037e124902a9348648d52c2cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GhostCatcher.CameraFollow
-  smoothSpeed: 5
+  smoothTime: 0.08
   offset: {x: 0, y: 0, z: -10}
   boundsCollider: {fileID: 769793161}
   useManualBounds: 0

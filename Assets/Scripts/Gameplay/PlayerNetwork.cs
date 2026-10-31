@@ -28,13 +28,19 @@ namespace GhostCatcher
         private Color  originalColor;
         private Vector3 bodyBaseScale = Vector3.one;
 
-        // Smoothed network position
+        [Header("Remote Interpolation")]
+        [SerializeField] private float remoteSmoothTime = 0.08f;
+
         private Vector3 networkPosition;
+        private Vector2 networkVelocity;
+        private Vector3 remoteMoveVelocity;
+        private Rigidbody2D rb;
 
         private void Awake()
         {
             originalColor = bodyRenderer.color;
             networkPosition = transform.position;
+            rb = GetComponent<Rigidbody2D>();
             if (bodyRenderer != null)
                 bodyBaseScale = bodyRenderer.transform.localScale;
         }
@@ -55,10 +61,14 @@ namespace GhostCatcher
 
         private void Update()
         {
-            // Smooth remote player movement
-            if (!photonView.IsMine)
-                transform.position = Vector3.MoveTowards(
-                    transform.position, networkPosition, Time.deltaTime * 10f);
+            if (photonView.IsMine) return;
+
+            Vector3 target = networkPosition;
+            transform.position = Vector3.SmoothDamp(
+                transform.position,
+                target,
+                ref remoteMoveVelocity,
+                remoteSmoothTime);
         }
 
         private void SetupLocalPlayer()
@@ -156,16 +166,21 @@ namespace GhostCatcher
             if (stream.IsWriting)
             {
                 stream.SendNext(transform.position);
+                stream.SendNext(rb != null ? rb.linearVelocity : Vector2.zero);
                 stream.SendNext(bodyRenderer != null && bodyRenderer.flipX);
             }
             else
             {
                 networkPosition = (Vector3)stream.ReceiveNext();
+                networkVelocity = (Vector2)stream.ReceiveNext();
                 bool flipX      = (bool)stream.ReceiveNext();
                 if (bodyRenderer != null)
                     bodyRenderer.flipX = flipX;
                 if (outlineRenderer != null)
                     outlineRenderer.flipX = flipX;
+
+                float lag = Mathf.Clamp((float)(PhotonNetwork.Time - info.SentServerTime), 0f, 0.25f);
+                networkPosition += (Vector3)(networkVelocity * lag);
             }
         }
     }
