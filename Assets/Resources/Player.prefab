@@ -63,7 +63,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 4
+  m_SortingOrder: 5
   m_TargetDisplay: 0
 --- !u!114 &5930175413194453726
 MonoBehaviour:
@@ -764,6 +764,8 @@ MonoBehaviour:
   scanPrompt: {fileID: 5916816120096874521}
   blendPrompt: {fileID: 5493515749960090839}
   nameTagObject: {fileID: 6927906641263759351}
+  walkBobAmplitude: 0.02
+  walkBobSpeed: 10
 --- !u!114 &3131193344615199171
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1095,7 +1097,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 3
+  m_SortingOrder: 5
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 8db72c1ef7fc242cda1ac677511a0b99, type: 3}
   m_Color: {r: 0, g: 0.18836021, b: 1, a: 1}
@@ -1186,7 +1188,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 3
+  m_SortingOrder: 5
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 772d7698863ab417c949b858e9a0bbfe, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -1259,7 +1261,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 4
+  m_SortingOrder: 5
   m_TargetDisplay: 0
 --- !u!114 &242671490775598382
 MonoBehaviour:

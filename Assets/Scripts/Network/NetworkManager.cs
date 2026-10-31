@@ -93,6 +93,8 @@ namespace GhostCatcher
 
         public void LeaveRoom()
         {
+            if (!PhotonNetwork.IsConnected) return;
+            if (PhotonNetwork.NetworkClientState == ClientState.Leaving) return;
             if (PhotonNetwork.InRoom)
                 PhotonNetwork.LeaveRoom();
         }

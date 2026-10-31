@@ -25,6 +25,8 @@ namespace GhostCatcher
 
         // Tracks spawned player entry UI rows
         private Dictionary<int, GameObject> playerEntries = new Dictionary<int, GameObject>();
+        private bool isStartingGame;
+        private bool isLeavingRoom;
 
         private void Start()
         {
@@ -44,7 +46,9 @@ namespace GhostCatcher
 
         private void OnStartGameClicked()
         {
+            if (isStartingGame || isLeavingRoom) return;
             if (!PhotonNetwork.IsMasterClient) return;
+            if (!IsJoinedInRoom()) return;
 
             int playerCount = PhotonNetwork.CurrentRoom.PlayerCount;
             if (playerCount < Constants.MIN_PLAYERS_TO_START)
@@ -53,10 +57,12 @@ namespace GhostCatcher
                 return;
             }
 
-            // Close room so no one else joins mid-game
+            isStartingGame = true;
+            LockLobbyButtons();
+            SetStatus("Starting game...");
+
             PhotonNetwork.CurrentRoom.IsOpen = false;
 
-            // Set game started flag
             var props = new ExitGames.Client.Photon.Hashtable
             {
                 { Constants.ROOM_GAME_STARTED, true },
@@ -64,13 +70,38 @@ namespace GhostCatcher
             };
             PhotonNetwork.CurrentRoom.SetCustomProperties(props);
 
-            // Load game scene for all players
             PhotonNetwork.LoadLevel(Constants.SCENE_GAME);
         }
 
         private void OnLeaveClicked()
         {
-            NetworkManager.Instance.LeaveRoom();
+            if (isLeavingRoom) return;
+
+            isLeavingRoom = true;
+            isStartingGame = false;
+            LockLobbyButtons();
+            SetStatus("Leaving...");
+
+            if (NetworkManager.Instance != null)
+                NetworkManager.Instance.LeaveRoom();
+            else if (PhotonNetwork.InRoom)
+                PhotonNetwork.LeaveRoom();
+        }
+
+        private static bool IsJoinedInRoom()
+        {
+            return PhotonNetwork.IsConnected
+                && PhotonNetwork.InRoom
+                && PhotonNetwork.CurrentRoom != null
+                && PhotonNetwork.NetworkClientState == ClientState.Joined;
+        }
+
+        private void LockLobbyButtons()
+        {
+            if (startGameButton != null)
+                startGameButton.interactable = false;
+            if (leaveButton != null)
+                leaveButton.interactable = false;
         }
 
         // ─── Player List ─────────────────────────────────────────────────────
@@ -126,6 +157,8 @@ namespace GhostCatcher
         private void UpdateStartButton()
         {
             if (!PhotonNetwork.IsMasterClient) return;
+            if (isStartingGame || isLeavingRoom) return;
+            if (!IsJoinedInRoom()) return;
 
             bool canStart = PhotonNetwork.CurrentRoom.PlayerCount >= Constants.MIN_PLAYERS_TO_START;
             startGameButton.interactable = canStart;
